@@ -3,14 +3,13 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class DragMove : MonoBehaviour {
-	[Header("Setting")]
-	public GameObject groundObject;
 	protected bool mDidMove = false;
 	protected bool mStarted = false;		
 
 	protected Vector3 mLastMovePos;
 
-	protected int groundCollisionLayer;
+
+	protected Plane mPlane;
 	
 	// Callback
 	public delegate void PositionChangeCallback(float x, float y);
@@ -19,11 +18,7 @@ public class DragMove : MonoBehaviour {
 
 	void Start()
 	{
-		if(groundObject == null) {
-			Debug.LogError("DragMove: groundObject is not defined");	
-		} else {
-			groundCollisionLayer = groundObject.layer;
-		}
+		mPlane = new Plane(Vector3.up, transform.position);		// the plane is overlap the given object		
 	}
 
 	
@@ -66,16 +61,24 @@ public class DragMove : MonoBehaviour {
 
 	Vector3 PositionAtGround() {
 		Ray ray = Camera.main.ScreenPointToRay (Input.mousePosition);
-		RaycastHit hit;
+		// RaycastHit hit;
 
-		int collisionLayer = 1 << groundCollisionLayer;		// the ground collision mask 
+		// int collisionLayer = 1 << groundCollisionLayer;		// the ground collision mask 
 
-		bool isHit = Physics.Raycast (ray, out hit, Mathf.Infinity, collisionLayer);
+		// bool isHit = Physics.Raycast (ray, out hit, Mathf.Infinity, collisionLayer);
+
+		// Reference:
+		//	https://docs.unity3d.com/ScriptReference/Plane.Raycast.html
+		Vector3 hitPoint;
+		float hitDistance = 0;
+		bool isHit = mPlane.Raycast(ray, out hitDistance);
 		if(isHit == false) {
 			return transform.position;		// stay current position if cannot hit the ground 
 		}
+
+		hitPoint = ray.GetPoint(hitDistance);
 	
-		return hit.point;
+		return hitPoint;
 	}
 
 }
